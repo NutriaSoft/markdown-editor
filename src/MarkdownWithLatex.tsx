@@ -3,8 +3,19 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import "katex/dist/katex.min.css";
 import { useEditorStore } from "./store/editorStore";
+
+import remarkToc from "remark-toc";
+import remarkBreaks from "remark-breaks";
+import remarkFrontmatter from "remark-frontmatter";
+
+import rehypeSlug from "rehype-slug";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeHighlight from "rehype-highlight";
+import rehypeExternalLinks from "rehype-external-links";
+
+import "katex/dist/katex.min.css";
+import "highlight.js/styles/github-dark.css";
 
 export function MarkdownLatexPreviewer() {
   const {
@@ -221,8 +232,20 @@ export function MarkdownLatexPreviewer() {
         <div className="flex-1 overflow-auto bg-white">
           <div className="p-8 prose prose-slate max-w-none prose-headings:text-slate-800 prose-p:text-slate-600 prose-strong:text-slate-800 prose-code:text-pink-600 prose-code:bg-pink-50 prose-code:px-1 prose-code:rounded">
             <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkMath]}
-              rehypePlugins={[rehypeKatex]}
+              remarkPlugins={[
+                remarkGfm,
+                remarkMath,
+                remarkToc,
+                remarkBreaks,
+                remarkFrontmatter,
+              ]}
+              rehypePlugins={[
+                rehypeKatex,
+                rehypeSlug,
+                rehypeAutolinkHeadings,
+                rehypeHighlight,
+                rehypeExternalLinks,
+              ]}
             >
               {markdown}
             </ReactMarkdown>
