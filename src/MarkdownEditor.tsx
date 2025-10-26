@@ -1,12 +1,23 @@
+import { forwardRef } from "react";
+
 interface MarkdownEditorProps {
   markdown: string;
   onChangeMarkdown: (value: string) => void;
+  onScroll?: (scrollPercentage: number) => void;
 }
 
-export function MarkdownEditor({
-  markdown,
-  onChangeMarkdown,
-}: MarkdownEditorProps) {
+export const MarkdownEditor = forwardRef<
+  HTMLTextAreaElement,
+  MarkdownEditorProps
+>(({ markdown, onChangeMarkdown, onScroll }, ref) => {
+  const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+    if (onScroll) {
+      const target = e.currentTarget;
+      const scrollPercentage =
+        target.scrollTop / (target.scrollHeight - target.clientHeight);
+      onScroll(scrollPercentage);
+    }
+  };
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Header del Editor */}
@@ -43,6 +54,7 @@ export function MarkdownEditor({
 
         {/* Textarea del editor */}
         <textarea
+          ref={ref}
           className="flex-1 p-4 font-mono text-sm resize-none bg-slate-900 text-slate-100 focus:outline-none leading-6 placeholder-slate-600"
           style={{
             caretColor: "#60a5fa",
@@ -50,10 +62,13 @@ export function MarkdownEditor({
           }}
           value={markdown}
           onChange={(e) => onChangeMarkdown(e.target.value)}
+          onScroll={handleScroll}
           placeholder="Escribe tu Markdown + LaTeX aquí..."
           spellCheck={false}
         />
       </div>
     </div>
   );
-}
+});
+
+MarkdownEditor.displayName = "MarkdownEditor";

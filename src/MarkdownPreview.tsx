@@ -22,6 +22,8 @@ interface MarkdownPreviewProps {
   onExportPDF?: () => void;
   onExportMarkdown?: () => void;
   onlyView?: boolean;
+  onScroll?: (scrollPercentage: number) => void;
+  scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export const MarkdownPreview = forwardRef<HTMLDivElement, MarkdownPreviewProps>(
@@ -32,10 +34,21 @@ export const MarkdownPreview = forwardRef<HTMLDivElement, MarkdownPreviewProps>(
       onExportPDF,
       onExportMarkdown,
       onlyView = false,
+      onScroll,
+      scrollContainerRef,
     },
     ref
   ) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+      if (onScroll) {
+        const target = e.currentTarget;
+        const scrollPercentage =
+          target.scrollTop / (target.scrollHeight - target.clientHeight);
+        onScroll(scrollPercentage);
+      }
+    };
 
     return (
       <div className="flex-1 flex flex-col h-full">
@@ -197,7 +210,11 @@ export const MarkdownPreview = forwardRef<HTMLDivElement, MarkdownPreviewProps>(
         )}
 
         {/* Contenido de la Vista Previa */}
-        <div className="flex-1 overflow-auto bg-white">
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-auto bg-white"
+          onScroll={handleScroll}
+        >
           <div
             ref={ref}
             className="p-8 prose prose-slate max-w-none prose-headings:text-slate-800 prose-p:text-slate-600 prose-strong:text-slate-800 prose-code:text-pink-600 prose-code:bg-pink-50 prose-code:px-1 prose-code:rounded"

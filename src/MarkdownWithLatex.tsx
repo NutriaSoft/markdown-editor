@@ -20,7 +20,14 @@ export function MarkdownLatexPreviewer() {
   const activeTab = getActiveTab();
   const markdown = activeTab?.content || "";
   const [isExporting, setIsExporting] = useState(false);
+  const [syncScroll, setSyncScroll] = useState(true);
+
   const previewRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const previewScrollRef = useRef<HTMLDivElement>(null);
+  const isScrollingFromEditor = useRef(false);
+  const isScrollingFromPreview = useRef(false);
+  const animationFrameRef = useRef<number | null>(null);
 
   const handleExportPDF = async () => {
     if (!previewRef.current) return;
@@ -121,6 +128,63 @@ export function MarkdownLatexPreviewer() {
     }
   };
 
+  const handleEditorScroll = (scrollPercentage: number) => {
+    if (
+      !syncScroll ||
+      !previewScrollRef.current ||
+      isScrollingFromPreview.current
+    )
+      return;
+
+    isScrollingFromEditor.current = true;
+
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+
+    animationFrameRef.current = requestAnimationFrame(() => {
+      if (previewScrollRef.current) {
+        const previewScroll = previewScrollRef.current;
+        const maxScroll =
+          previewScroll.scrollHeight - previewScroll.clientHeight;
+        const targetScroll = maxScroll * scrollPercentage;
+
+        previewScroll.scrollTop = targetScroll;
+      }
+
+      // Liberar el flag inmediatamente después
+      requestAnimationFrame(() => {
+        isScrollingFromEditor.current = false;
+      });
+    });
+  };
+
+  const handlePreviewScroll = (scrollPercentage: number) => {
+    if (!syncScroll || !editorRef.current || isScrollingFromEditor.current)
+      return;
+
+    isScrollingFromPreview.current = true;
+
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+
+    animationFrameRef.current = requestAnimationFrame(() => {
+      if (editorRef.current) {
+        const editor = editorRef.current;
+        const maxScroll = editor.scrollHeight - editor.clientHeight;
+        const targetScroll = maxScroll * scrollPercentage;
+
+        editor.scrollTop = targetScroll;
+      }
+
+      // Liberar el flag inmediatamente después
+      requestAnimationFrame(() => {
+        isScrollingFromPreview.current = false;
+      });
+    });
+  };
+
   return (
     <div className="flex h-screen max-h-dvh bg-linear-to-br from-slate-50 to-slate-100">
       <div className="flex-1 flex flex-col h-full">
@@ -136,21 +200,62 @@ export function MarkdownLatexPreviewer() {
 
         {/* Editor */}
         <MarkdownEditor
+          ref={editorRef}
           markdown={markdown}
           onChangeMarkdown={handleChangeMarkdown}
+          onScroll={handleEditorScroll}
         />
       </div>
 
-      {/* Divisor */}
-      <div className="w-1 bg-linear-to-b from-slate-300 via-slate-400 to-slate-300"></div>
+      {/* Divisor con botón de sincronización */}
+      <div className="relative w-1 bg-linear-to-b from-slate-300 via-slate-400 to-slate-300">
+        <button
+          onClick={() => setSyncScroll(!syncScroll)}
+          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-2 rounded-full shadow-lg transition-all ${
+            syncScroll
+              ? "bg-blue-600 hover:bg-blue-700 text-white"
+              : "bg-slate-300 hover:bg-slate-400 text-slate-600"
+          }`}
+          title={
+            syncScroll
+              ? "Desactivar sincronización de scroll"
+              : "Activar sincronización de scroll"
+          }
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            {syncScroll ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            )}
+          </svg>
+        </button>
+      </div>
 
       {/* Panel de Vista Previa */}
       <MarkdownPreview
         ref={previewRef}
+        scrollContainerRef={previewScrollRef}
         markdown={markdown}
         isExporting={isExporting}
         onExportPDF={handleExportPDF}
         onExportMarkdown={handleExportMarkdown}
+        onScroll={handlePreviewScroll}
       />
     </div>
   );
