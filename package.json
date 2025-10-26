@@ -12,6 +12,8 @@
     "bun-plugin-tailwind": "^0.1.2",
     "highlight.js": "^11.11.1",
     "katex": "^0.16.25",
+    "playwright": "^1.56.1",
+    "puppeteer-core": "^24.26.1",
     "react": "^19",
     "react-dom": "^19",
     "react-markdown": "^10.1.0",
@@ -32,6 +34,7 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
     "@types/bun": "latest",
+    "@types/html2canvas": "^1.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19"
   }

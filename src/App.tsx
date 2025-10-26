@@ -8,7 +8,7 @@ import "katex/dist/katex.min.css";
 
 export function App() {
   return (
-    <div className="">
+    <div className="max-h-dvh overflow-hidden">
       <MarkdownLatexPreviewer />
     </div>
   );
