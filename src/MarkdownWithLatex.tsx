@@ -91,6 +91,30 @@ export function MarkdownLatexPreviewer() {
     }
   };
 
+  const handleExportMarkdown = () => {
+    if (!activeTab) return;
+
+    try {
+      // Crear un blob con el contenido markdown
+      const blob = new Blob([markdown], {
+        type: "text/markdown;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${activeTab.title || "documento"}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error al exportar Markdown:", error);
+      alert(
+        "Hubo un error al guardar el archivo. Por favor, inténtalo de nuevo."
+      );
+    }
+  };
+
   const handleChangeMarkdown = (value: string) => {
     if (activeTab) {
       updateTabContent(activeTab.id, value);
@@ -126,6 +150,7 @@ export function MarkdownLatexPreviewer() {
         markdown={markdown}
         isExporting={isExporting}
         onExportPDF={handleExportPDF}
+        onExportMarkdown={handleExportMarkdown}
       />
     </div>
   );
